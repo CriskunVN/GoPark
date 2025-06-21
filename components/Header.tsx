@@ -1,3 +1,4 @@
+// components/Header.tsx
 "use client";
 
 import { useState } from "react";
@@ -185,3 +186,5 @@ const Header = () => {
 };
 
 export default Header;
+
+// Bạn có thể thêm file FavoritesSheet.tsx và ShoppingBagSheet.tsx nếu cần, mình sẽ tiếp tục gửi.

@@ -51,19 +51,19 @@ const FeaturedSections = () => {
       title: "Car Parking",
       subtitle: "Find a Spot Fast",
       backgroundImage: "park6.jpg",
-      href: "/book/car",
+      href: "/parking/car",
     },
     {
       title: "Motorbike",
       subtitle: "Park in Seconds",
       backgroundImage: "park5.jpg",
-      href: "/book/motorbike",
+      href: "/parking/motorbike",
     },
     {
       title: "Truck & Bus",
       subtitle: "Big Vehicle Parking",
       backgroundImage: "park4.jpg",
-      href: "/book/large-vehicles",
+      href: "/parking/large-vehicles",
     },
   ];
 

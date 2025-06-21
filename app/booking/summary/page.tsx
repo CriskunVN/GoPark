@@ -26,6 +26,7 @@ import { CheckCircle } from "lucide-react";
 export default function ReservationSummary() {
   const params = useSearchParams();
 
+  const spot = params.get("spot"); // ✅ lấy tên bãi đỗ xe
   const vehicle = params.get("vehicle");
   const city = params.get("city");
   const district = params.get("district");
@@ -36,10 +37,7 @@ export default function ReservationSummary() {
   const [paymentMethod, setPaymentMethod] = useState<string>("momo");
   const [open, setOpen] = useState(false);
 
-  // Giá mỗi giờ
   const pricePerHour = 25000;
-
-  // Tính thời gian và tổng tiền
   const [sh, sm] = checkIn.split(":").map(Number);
   const [eh, em] = checkOut.split(":").map(Number);
   const startMinutes = sh * 60 + sm;
@@ -59,6 +57,7 @@ export default function ReservationSummary() {
           <div className="space-y-4 border border-gray-200 p-6 rounded-xl shadow bg-white">
             <h2 className="text-xl font-semibold mb-2">Booking Details</h2>
             <div className="space-y-2 text-sm text-gray-700">
+              <p><strong>🏙 Parking Spot:</strong> {spot}</p>
               <p><strong>🚗 Vehicle:</strong> {vehicle}</p>
               <p><strong>📍 Location:</strong> {district}, {city}</p>
               <p><strong>📅 Date:</strong> {date}</p>
@@ -87,7 +86,7 @@ export default function ReservationSummary() {
               </div>
             </div>
 
-            {/* Payment method */}
+            {/* Payment Method */}
             <div className="space-y-2">
               <Label>Payment Method</Label>
               <Select value={paymentMethod} onValueChange={setPaymentMethod}>
@@ -102,7 +101,7 @@ export default function ReservationSummary() {
               </Select>
             </div>
 
-            {/* Confirm */}
+            {/* Confirm Button + Dialog */}
             <Dialog open={open} onOpenChange={setOpen}>
               <DialogTrigger asChild>
                 <Button className="w-full mt-4">Confirm Reservation</Button>

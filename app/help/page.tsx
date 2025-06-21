@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -12,10 +13,42 @@ import { Label } from "@radix-ui/react-label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DialogTrigger } from "@radix-ui/react-dialog";
+import { CheckCircle } from "lucide-react";
 
 export default function Home() {
+  const [open, setOpen] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+
+    fetch("https://api.web3forms.com/submit", {
+      method: "POST",
+      body: new FormData(form),
+    })
+      .then((res) => {
+        if (res.ok) {
+          setOpen(true);
+          form.reset(); // reset form sau khi gửi
+        } else {
+          alert("Failed to send message.");
+        }
+      })
+      .catch(() => alert("Something went wrong."));
+  };
+
   return (
-    <div className="min-h-screen  bg-white text-gray-800">
+    <div className="min-h-screen bg-white text-gray-800">
       <Header />
 
       <main className="flex-grow max-w-3xl mx-auto px-4 py-12 space-y-8">
@@ -34,7 +67,6 @@ export default function Home() {
               reserve.
             </AccordionContent>
           </AccordionItem>
-
           <AccordionItem value="q2">
             <AccordionTrigger>
               Can I cancel or modify a reservation?
@@ -44,7 +76,6 @@ export default function Home() {
               your account dashboard before your reserved time.
             </AccordionContent>
           </AccordionItem>
-
           <AccordionItem value="q3">
             <AccordionTrigger>
               Is there a mobile app available?
@@ -64,13 +95,21 @@ export default function Home() {
             Have questions or feedback? Send us a message.
           </p>
 
-          <form className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <input
+              type="hidden"
+              name="access_key"
+              value="b19fe6de-12a8-4d61-b749-e617b5b2b5cd"
+            />
+
             <div>
               <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
+                name="name"
                 placeholder="Your full name"
                 className="bg-gray-100"
+                required
               />
             </div>
 
@@ -78,9 +117,11 @@ export default function Home() {
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="your@email.com"
                 className="bg-gray-100"
+                required
               />
             </div>
 
@@ -88,13 +129,18 @@ export default function Home() {
               <Label htmlFor="message">Message</Label>
               <Textarea
                 id="message"
+                name="message"
                 placeholder="Type your message here..."
                 className="bg-gray-100"
                 rows={4}
+                required
               />
             </div>
 
-            <Button className="w-full bg-black text-white hover:bg-gray-900">
+            <Button
+              type="submit"
+              className="w-full bg-black text-white hover:bg-gray-900"
+            >
               Send Message
             </Button>
           </form>
@@ -102,6 +148,29 @@ export default function Home() {
       </main>
 
       <Footer />
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader>
+            <CheckCircle className="text-green-600 w-12 h-12 mx-auto mb-2" />
+            <DialogTitle className="text-xl font-bold">
+              Message Sent!
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">
+              We've received your message. We'll be in touch soon.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              className="mx-auto mt-4"
+              onClick={() => setOpen(false)}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

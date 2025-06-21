@@ -34,42 +34,42 @@ const ParkingTypes = () => {
     {
       title: "Overnight Parking",
       image: "/overnight.jpg",
-      href: "/book/overnight",
+      href: "/parking/overnight",
     },
     {
       title: "Mall Parking",
       image: "mall.jpg",
-      href: "/book/mall",
+      href: "/parking/mall",
     },
     {
       title: "Event Parking",
       image: "event.jpg",
-      href: "/book/event",
+      href: "/parking/event",
     },
     {
       title: "Basement Parking",
       image: "Basement.jpg",
-      href: "/book/basement",
+      href: "/parking/basement",
     },
     {
       title: "Outdoor Parking",
       image: "Outdoor.jpg",
-      href: "/book/outdoor",
+      href: "/parking/outdoor",
     },
     {
       title: "Reserved Spots",
       image: "Reserved Spots.jpg",
-      href: "/book/reserved",
+      href: "/parking/reserved",
     },
     {
       title: "Airport Parking",
       image: "Airport.jpg",
-      href: "/book/airport",
+      href: "/parking/airport",
     },
     {
       title: "EV Charging",
       image: "EVCharging.jpg",
-      href: "/book/ev",
+      href: "/parking/ev",
     },
   ];
 
