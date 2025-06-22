@@ -25,6 +25,9 @@ export const metadata: Metadata = {
       "Search and book parking spots by vehicle type and location. Available in Ho Chi Minh City, Hanoi, and Da Nang.",
     type: "website",
   },
+  icons: {
+    icon: "https://spothero.com/favicon.ico",
+  },
 };
 
 export default function RootLayout({
