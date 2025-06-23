@@ -1,10 +1,19 @@
 import express from 'express';
 
-import { signup, login } from '../controllers/auth.controller.js';
+import {
+  signup,
+  login,
+  protect, // protect dùng để bảo vệ các route yêu cầu người dùng đã đăng nhập
+  restrictTo, // restrictTo dùng để giới hạn quyền truy cập vào các route chỉ cho một số vai trò nhất định
+  forgotPassword,
+  resetPassword,
+} from '../controllers/auth.controller.js';
 
 const router = express.Router();
 
 router.post('/signup', signup);
 router.post('/login', login);
+router.post('/forgotPassword', forgotPassword);
+router.patch('/resetPassword/:token', resetPassword);
 
 export default router;
