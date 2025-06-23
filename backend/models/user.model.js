@@ -67,7 +67,7 @@ userSchema.pre('save', function (next) {
   next();
 });
 
-// check password login with hashed password in the database
+// Hàm này sẽ so sánh mật khẩu người dùng nhập vào với mật khẩu đã được mã hóa trong cơ sở dữ liệu
 userSchema.methods.correctPassword = async function (
   candidatePassword,
   userPassword
@@ -75,19 +75,23 @@ userSchema.methods.correctPassword = async function (
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
-// check if the password is changed after the token was issued
+// hàm này để kiểm tra xem người dùng đã thay đổi mật khẩu sau khi token JWT được tạo hay chưa
+// Nếu người dùng đã thay đổi mật khẩu, hàm này sẽ trả về true, ngược lại sẽ trả về false
+// JWTTimestamp là thời gian tạo token JWT
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangeAt) {
     const changedTimestamp = parseInt(
       this.passwordChangeAt.getTime() / 1000,
       10
     );
-    return JWTTimestamp < changedTimestamp; // false means NOT changed
+    return JWTTimestamp < changedTimestamp; // false có nghĩa là người dùng chưa thay đổi mật khẩu sau khi token được tạo
   }
   return false;
 };
 
-// create password reset token
+// Tạo token reset mật khẩu
+// Hàm này sẽ tạo một token reset mật khẩu và lưu trữ nó dưới dạng hash trong cơ sở dữ liệu
+// Đồng thời, nó cũng thiết lập thời gian hết hạn cho token này
 userSchema.methods.createPasswordResetToken = function () {
   // create random token
   const resetToken = crypto.randomBytes(32).toString('hex');
@@ -95,9 +99,10 @@ userSchema.methods.createPasswordResetToken = function () {
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-  // set expire time for the token
+  // cập nhật thời gian hết hạn cho token
+  // token này sẽ hết hạn sau 10 phút kể từ thời điểm tạo
   this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-
+  // console.log('resetToken: ', resetToken);
   return resetToken;
 };
 

@@ -4,6 +4,7 @@ import AppError from '../utils/appError.js';
 import promisify from 'util';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
+import sendEmail from '../utils/email.js';
 
 // Hàm tạo token JWT
 // Hàm này sẽ tạo một token JWT với id người dùng và bí mật từ biến môi trường
@@ -15,7 +16,7 @@ const signToken = (id) => {
 };
 
 // Hàm đăng ký người dùng mới
-export const signup = catchAsync(async (req, res) => {
+export const signup = catchAsync(async (req, res, next) => {
   const {
     userName,
     email,
@@ -28,9 +29,7 @@ export const signup = catchAsync(async (req, res) => {
   // Kiểm tra nếu tài khoản đã tồn tại
   const existingUser = await User.findOne({ email });
   if (existingUser) {
-    return res
-      .status(409)
-      .json({ status: 'fail', message: 'Tài khoản đã tồn tại.' });
+    return next(new AppError('User already exists with this email', 409));
   }
 
   // Tạo khách hàng mới
@@ -67,10 +66,11 @@ export const login = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-// This function is used to protect the routes
-// It is called in the routes that need to be protected
+// Đây là hàm bảo vệ các route yêu cầu người dùng đã đăng nhập
+// Nó sẽ kiểm tra xem người dùng đã đăng nhập hay chưa bằng cách kiểm tra token trong header của request
+// Nếu token hợp lệ, nó sẽ lấy thông tin người dùng từ cơ sở dữ liệu và gán vào req.user
 export const protect = catchAsync(async (req, res, next) => {
-  // 1. Getting token and check of it's there
+  // 1. lấy token từ header của request
   let token;
   if (
     req.headers.authorization &&
@@ -83,10 +83,12 @@ export const protect = catchAsync(async (req, res, next) => {
       new AppError('You are not logged in! Please log in to get access.', 401)
     );
   }
-  // 2. Verification token
+  // 2. Xác thực token
+  // Sử dụng promisify để chuyển đổi jwt.verify thành một hàm trả về Promise
+  // Điều này cho phép chúng ta sử dụng await để đợi kết quả xác thực token
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
 
-  // 3. Check if user still exists
+  // 3. Kiểm tra xem người dùng còn tồn tại hay không
   const currentUser = await User.findById(decoded.id);
   if (!currentUser) {
     return next(
@@ -94,23 +96,25 @@ export const protect = catchAsync(async (req, res, next) => {
     );
   }
 
-  //4. Check if user changed password after the token was issued
+  //4. Kiểm tra xem người dùng đã thay đổi mật khẩu sau khi token được tạo hay không
+  // Nếu người dùng đã thay đổi mật khẩu, token sẽ không còn hợp lệ nữa
+  // Chúng ta sẽ so sánh thời gian thay đổi mật khẩu với thời gian tạo token (decoded.iat)
+  // decoded.iat là thời gian tạo token được lưu trong payload của token
   if (currentUser.changedPasswordAfter(decoded.iat)) {
     return next(
       new AppError('User recently changed password! Please log in again.', 401)
     );
   }
 
-  // Grant access to protected route
+  // 5. Nếu tất cả các bước trên đều thành công, gán người dùng vào req.user
   req.user = currentUser;
   next();
 });
 
-// This function is used to restrict the routes to certain roles
-// It is called in the routes that need to be restricted
+// Hàm này được sử dụng để giới hạn quyền truy cập vào các route chỉ cho phép người dùng có vai trò nhất định
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
-    // roles ['admin', 'lead-guide']. if role='user' no have permission
+    // roles ['admin', 'user']. if role='parking_owner' no have permission
     if (!roles.includes(req.user.role)) {
       return next(
         new AppError('You do not have permission to perform this action', 403)
@@ -120,19 +124,20 @@ export const restrictTo = (...roles) => {
   };
 };
 
-// This function is used to send the password reset token to the user's email
-// It is called when the user clicks on the forgot password link
+// Hàm này đươc sử dụng để lấy lại mật khẩu của người dùng
+// Nó sẽ gửi một email chứa token để người dùng có thể đặt lại mật khẩu của mình
+// Token này sẽ được lưu trong cơ sở dữ liệu và có thời gian hết hạn
 export const forgotPassword = catchAsync(async (req, res, next) => {
-  // 1. Get user based on POSTed email
+  // 1. Lấy user dựa trên email được cung cấp trong request body
   const user = await User.findOne({ email: req.body.email });
   if (!user) {
     return next(new AppError('There is no user with this email address', 404));
   }
-  // 2. Generate the random reset token
+  // 2. Tạo random reset token để đặt lại mật khẩu
   const resetToken = user.createPasswordResetToken();
   await user.save({ validateBeforeSave: false });
 
-  // 3. Send it to user's email
+  // 3. Gửi reset token qua email
   const resetURL = `${req.protocol}://${req.get(
     'host'
   )}/api/v1/users/resetPassword/${resetToken}`;
@@ -151,7 +156,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
       message: 'Token sent to email!',
     });
   } catch (err) {
-    // If there is an error, we need to reset the passwordResetToken and passwordResetExpires fields
+    // nếu có lỗi xảy ra trong quá trình gửi email, chúng ta sẽ xóa token và thời gian hết hạn khỏi cơ sở dữ liệu
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save({ validateBeforeSave: false });
@@ -162,36 +167,37 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   }
 });
 
-// This function is used to reset the password
-// It is called when the user clicks on the link in the email
+// Đây là hàm để đặt lại mật khẩu của người dùng
 export const resetPassword = catchAsync(async (req, res, next) => {
-  // 1. Get user based on the token
-  // Hash the token from the URL to get the hashed token
-  // and compare it to the hashed token stored in the database
+  // 1. Lấy token từ URL và kiểm tra xem token có hợp lệ hay không
+  // hash token từ URL để so sánh với token đã được lưu trong cơ sở dữ liệu
   const hashedToken = crypto
     .createHash('sha256')
     .update(req.params.token)
     .digest('hex');
 
-  // Find the user with the hashed token and check if the token has not expired
+  // tìm kiếm người dùng dựa trên token đã được hash và thời gian hết hạn
+  // passwordResetExpires là thời gian hết hạn của token, nếu token đã hết hạn thì sẽ không tìm thấy người dùng
+  // $gt: Date.now() nghĩa là token phải còn hiệu lực (chưa hết hạn)
+  console.log(`Hashed Token: ${hashedToken}`);
   const user = await User.findOne({
     passwordResetToken: hashedToken,
     passwordResetExpires: { $gt: Date.now() },
   });
 
-  // 2. If token has not expired, and there is user, set the new password
+  // 2. Kiểm tra xem người dùng có tồn tại hay không
   if (!user) {
     return next(new AppError('Token is invalid or has expired', 400));
   }
-
+  // không lỗi thì sẽ tiếp tục cập nhật mật khẩu
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
 
-  // 3. Update changedPasswordAt property for the user
-  // This is done in the userModel pre save hook
+  // 3. cập nhật thời gian thay đổi mật khẩu
+  // pre save middleware trong mô hình người dùng sẽ tự động cập nhật thời gian thay đổi mật khẩu
 
   // 4. Log the user in, send JWT
   createSendToken(user, 200, res);
