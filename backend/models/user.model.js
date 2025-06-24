@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin', 'parking_owner'],
     default: 'user',
   },
-  profilePicture: { type: String, default: '' }, // hình đại diện người dùng
+  // profilePicture: { type: String, default: '' }, // hình đại diện người dùng
   phoneNumber: { type: String, default: '' },
   isActive: { type: Boolean, default: true, select: false },
   passwordChangeAt: { type: Date, default: Date.now },

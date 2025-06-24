@@ -1,7 +1,7 @@
 // components/Header.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,12 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 const Header = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const router = useRouter();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setIsLoggedIn(!!token);
+  }, []);
 
   const mainMenuItems = [
     {
@@ -67,14 +73,36 @@ const Header = () => {
               <a href="/help" className="hover:text-gray-600 transition-colors">
                 Help
               </a>
-              <span className="text-gray-300">|</span>
-              <a href="/register" className="hover:text-gray-600 transition-colors">
-                Register
-              </a>
-              <span className="text-gray-300">|</span>
-              <a href="/login" className="hover:text-gray-600 transition-colors">
-                Log In
-              </a>
+              {!isLoggedIn && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <a
+                    href="/account/signup"
+                    className="hover:text-gray-600 transition-colors"
+                  >
+                    Sign Up
+                  </a>
+                  <span className="text-gray-300">|</span>
+                  <a
+                    href="/account/login"
+                    className="hover:text-gray-600 transition-colors"
+                  >
+                    Log In
+                  </a>
+                </>
+              )}
+              {isLoggedIn && (
+                <button
+                  onClick={() => {
+                    localStorage.removeItem("token");
+                    setIsLoggedIn(false);
+                    router.push("/account/login");
+                  }}
+                  className="hover:text-gray-600 transition-colors"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -84,7 +112,10 @@ const Header = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex-shrink-0">
-              <a href="/" className="h-8 w-24 bg-black text-white flex items-center justify-center font-bold text-lg rounded-sm">
+              <a
+                href="/"
+                className="h-8 w-24 bg-black text-white flex items-center justify-center font-bold text-lg rounded-sm"
+              >
                 GoPark
               </a>
             </div>
@@ -101,7 +132,9 @@ const Header = () => {
                       {item.subMenu.map((subItem) => (
                         <button
                           key={subItem.name}
-                          onClick={() => router.push(`/booking?vehicle=${subItem.vehicle}`)}
+                          onClick={() =>
+                            router.push(`/booking?vehicle=${subItem.vehicle}`)
+                          }
                           className="block text-left w-full px-3 py-2 text-sm text-gray-700 hover:text-black hover:bg-gray-50 rounded transition-colors"
                         >
                           {subItem.name}
@@ -165,7 +198,11 @@ const Header = () => {
                           {item.subMenu.map((subItem) => (
                             <button
                               key={subItem.name}
-                              onClick={() => router.push(`/booking?vehicle=${subItem.vehicle}`)}
+                              onClick={() =>
+                                router.push(
+                                  `/booking?vehicle=${subItem.vehicle}`
+                                )
+                              }
                               className="block w-full text-left px-4 py-1 text-sm text-gray-600 hover:text-black"
                             >
                               {subItem.name}
