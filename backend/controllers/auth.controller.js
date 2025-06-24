@@ -1,7 +1,7 @@
 import User from '../models/user.model.js';
 import catchAsync from '../utils/catchAsync.js';
 import AppError from '../utils/appError.js';
-import promisify from 'util';
+import { promisify } from 'util';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import sendEmail from '../utils/email.js';
@@ -138,7 +138,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
   await user.save({ validateBeforeSave: false });
 
   // 3. Gửi reset token qua email
- const resetURL = `http://localhost:3001/account/reset/password?token=${resetToken}`;
+  const resetURL = `http://localhost:3001/account/reset/password?token=${resetToken}`;
 
   const message = `Forgot your password? Submit a PATCH request with your new password and passwordConfirm to: ${resetURL}.
                     If you didn't forget your password, please ignore this email!`;
@@ -202,18 +202,20 @@ export const resetPassword = catchAsync(async (req, res, next) => {
   createSendToken(user, 200, res);
 });
 
-// This function is used to update the password
-// It is called when the user is logged in and wants to change their password
+// Hàm này được sử dụng để cập nhật mật khẩu của người dùng đã đăng nhập
 export const updatePassword = catchAsync(async (req, res, next) => {
-  const user = await User.findById(req.user.id).select('+password');
-  // 1. Check if POSTed password is correct
+  const user = await User.findById(req.user.id).select('+password'); // select('+password') để lấy mật khẩu đã mã hóa của người dùng
+
+  // 1. Kiểm tra mật khẩu nhập có đúng với mật khẩu trong DB không
   if (!(await user.correctPassword(req.body.passwordCurrent, user.password))) {
     return next(new AppError('Your current password is wrong.', 401));
   }
-  // 2. If so, update password
+
+  // 2. Nếu đúng, cập nhật mật khẩu mới
   user.password = req.body.password;
   user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
+
   // 3. Log user in, send JWT
   createSendToken(user, 200, res);
 });

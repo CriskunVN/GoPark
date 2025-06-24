@@ -40,9 +40,9 @@ const userSchema = new mongoose.Schema({
   isActive: { type: Boolean, default: true, select: false },
   passwordChangeAt: { type: Date, default: Date.now },
   // the password reset token of the user
-  passwordResetToken: String,
+  passwordResetToken: { type: String, select: false },
   // the password reset expires date of the user
-  passwordResetExpires: Date,
+  passwordResetExpires: { type: Date, select: false },
 });
 
 // Middleware để hash mật khẩu trước khi lưu vào cơ sở dữ liệu
@@ -76,7 +76,6 @@ userSchema.methods.correctPassword = async function (
 };
 
 // hàm này để kiểm tra xem người dùng đã thay đổi mật khẩu sau khi token JWT được tạo hay chưa
-// Nếu người dùng đã thay đổi mật khẩu, hàm này sẽ trả về true, ngược lại sẽ trả về false
 // JWTTimestamp là thời gian tạo token JWT
 userSchema.methods.changedPasswordAfter = function (JWTTimestamp) {
   if (this.passwordChangeAt) {
