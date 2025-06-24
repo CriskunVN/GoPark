@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import helmet from 'helmet';
 import userRouter from './routes/user.route.js';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,6 +23,14 @@ app.use(express.json());
 
 // Serving static files
 app.use(express.static(`${__dirname}/public`));
+
+// CORS
+app.use(
+  cors({
+    origin: 'http://localhost:3001', // FE Next.js domain
+    credentials: true, //  để gửi cookie hoặc authorization headers
+  })
+);
 
 // 3. ROUTES
 app.use('/api/v1/users', userRouter);
