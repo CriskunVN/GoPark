@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import cors from 'cors';
 import userRouter from './routes/user.route.js';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
 import { dirname } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,8 +23,17 @@ app.use(morgan('dev')); // Ghi log các request
 app.use(express.json()); // Parse JSON request body
 app.use(express.static(`${__dirname}/public`)); // Serve file tĩnh nếu cần
 
-// 2. ROUTES
-app.use('/api/v1/users', userRouter); // Router người dùng
+
+// CORS
+app.use(
+  cors({
+    origin: 'http://localhost:3001', // FE Next.js domain
+    credentials: true, //  để gửi cookie hoặc authorization headers
+  })
+);
+
+// 3. ROUTES
+app.use('/api/v1/users', userRouter);
 
 // 3. ERROR HANDLER — luôn để sau routes
 app.use((err, req, res, next) => {
