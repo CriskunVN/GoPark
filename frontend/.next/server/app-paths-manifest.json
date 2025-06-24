@@ -1,0 +1,7 @@
+{
+  "/account/login/page": "app/account/login/page.js",
+  "/page": "app/page.js",
+  "/account/signup/page": "app/account/signup/page.js",
+  "/account/reset/page": "app/account/reset/page.js",
+  "/account/reset/password/page": "app/account/reset/password/page.js"
+}
