@@ -40,8 +40,8 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.use((err, req, res, next) => {
-  next(new AppError(`Can't found URL: ${req.originalUrl} on this server`, 404));
-});
+// app.use((err, req, res, next) => {
+//   next(new AppError(`Can't found URL: ${req.originalUrl} on this server`, 404));
+// });
 
 export default app;
