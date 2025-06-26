@@ -1,7 +1,6 @@
 {
-  "/account/login/page": "app/account/login/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
   "/page": "app/page.js",
-  "/account/signup/page": "app/account/signup/page.js",
-  "/account/reset/page": "app/account/reset/page.js",
-  "/account/reset/password/page": "app/account/reset/password/page.js"
+  "/owner/page": "app/owner/page.js",
+  "/parking/[id]/page": "app/parking/[id]/page.js"
 }
