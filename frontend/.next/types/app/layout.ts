@@ -1,4 +1,4 @@
-// File: /home/boon/Documents/GoPark/frontend/app/layout.tsx
+// File: D:\DTU\Doan\GoPark\frontend\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
